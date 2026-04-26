@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ujian Sosiologi Kelas 10</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:20px}
+        .container{max-width:900px;margin:0 auto;background:white;border-radius:16px;box-shadow:0 25px 80px rgba(0,0,0,0.3);overflow:hidden}
+        .header{background:linear-gradient(135deg,#2c3e50 0%,#34495e 100%);color:white;padding:30px;text-align:center}
+        .header h1{font-size:28px;margin-bottom:10px}
+        .progress{background:rgba(255,255,255,0.1);padding:20px}
+        .progress-bar{background:rgba(255,255,255,0.2);height:8px;border-radius:4px;overflow:hidden}
+        .progress-fill{background:#3498db;height:100%;width:0%;transition:width 0.4s}
+        .body{padding:40px}
+        .question{display:none;animation:fadeIn 0.4s}
+        .question.active{display:block}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        .q-text{font-size:20px;color:#2c3e50;margin-bottom:30px;line-height:1.6;font-weight:500}
+        .options{display:flex;flex-direction:column;gap:12px}
+        .option{display:flex;align-items:center;padding:18px 24px;background:#f8f9fa;border:2px solid #e9ecef;border-radius:10px;cursor:pointer;transition:all 0.25s}
+        .option:hover{background:#e3f2fd;border-color:#3498db;transform:translateX(8px)}
+        .option.selected{background:#3498db;color:white;border-color:#2980b9}
+        .option input{margin-right:16px;transform:scale(1.3)}
+        .nav{display:flex;justify-content:space-between;margin-top:35px;padding-top:25px;border-top:2px solid #ecf0f1}
+        button{padding:14px 32px;border:none;border-radius:8px;font-size:16px;cursor:pointer;font-weight:600;text-transform:uppercase}
+        .btn-primary{background:#3498db;color:white}
+        .btn-secondary{background:#95a5a6;color:white}
+        .btn-finish{background:#e74c3c;color:white}
+        .dots{display:flex;flex-wrap:wrap;gap:10px;margin-top:25px;padding:25px;background:#f8f9fa;justify-content:center}
+        .dot{width:45px;height:45px;border-radius:50%;border:3px solid #bdc3c7;background:white;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700;color:#7f8c8d}
+        .dot.active{background:#3498db;color:white;border-color:#2980b9}
+        .dot.answered{background:#27ae60;color:white;border-color:#27ae60}
+        .status{position:fixed;top:25px;right:25px;padding:16px 28px;background:#27ae60;color:white;border-radius:8px;display:none;z-index:1000;font-weight:500}
+        .status.show{display:block}
+        .status.error{background:#e74c3c}
+        .warning{position:fixed;top:0;left:0;width:100%;background:#f39c12;color:white;padding:16px;text-align:center;font-weight:600;display:none;z-index:1000}
+        .warning.show{display:block;animation:pulse 2s infinite}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.8}}
+        .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:none;justify-content:center;align-items:center;z-index:2000}
+        .modal.show{display:flex}
+        .modal-content{background:white;padding:40px;border-radius:16px;text-align:center;max-width:500px;width:90%}
+        .modal h2{color:#2c3e50;margin-bottom:20px}
+        .stats{background:#f8f9fa;padding:20px;border-radius:12px;margin-bottom:25px}
+        .stat{display:flex;justify-content:space-between;margin-bottom:12px}
+        .result{display:none;padding:50px;text-align:center}
+        .result.show{display:block}
+        .score-box{width:220px;height:220px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 35px;color:white}
+        .score-num{font-size:56px;font-weight:700}
+        .detail{background:#f8f9fa;padding:30px;border-radius:12px;margin-top:30px;text-align:left}
+        .item{display:flex;justify-content:space-between;padding:15px 0;border-bottom:1px solid #ecf0f1}
+        .ans{padding:6px 16px;border-radius:6px;font-weight:600;font-size:14px}
+        .ans.correct{background:#d4edda;color:#155724}
+        .ans.wrong{background:#f8d7da;color:#721c24;text-decoration:line-through}
+        .ans.empty{background:#fff3cd;color:#856404}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Ujian Sosiologi Kelas 10</h1>
+            <p>25 Soal • Waktu: 60 menit • Nilai Minimum: 60</p>
+            <div class="progress">
+                <div class="progress-bar"><div class="progress-fill" id="progressBar"></div></div>
+            </div>
+        </div>
+        <div class="warning" id="warning">⚠️ PERINGATAN: Anda meninggalkan halaman ujian!</div>
+        <div class="body" id="examBody"></div>
+        <div class="dots" id="dots"></div>
+        <div class="result" id="result">
+            <div class="score-box"><div class="score-num" id="scoreNum">0</div><div>Nilai</div></div>
+            <h2 id="resTitle">Selesai!</h2>
+            <p id="resMsg"></p>
+            <div class="detail" id="detail"></div>
+            <button class="btn-primary" onclick="location.reload()" style="margin-top:20px">🔄 Ulangi</button>
+        </div>
+    </div>
+    <div class="status" id="status">Jawaban disimpan</div>
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2>✅ Konfirmasi Penyelesaian</h2>
+            <div class="stats">
+                <div class="stat"><span>Soal Dijawab:</span><span id="ansCount">0</span>/25</div>
+                <div class="stat"><span style="color:#e74c3c">Setelah ini tidak bisa diulang!</span></div>
+            </div>
+            <button class="btn-secondary" onclick="closeModal()" style="margin-right:10px">Kembali</button>
+            <button class="btn-finish" onclick="finish()">Ya, Selesaikan</button>
+        </div>
+    </div>
+
+<script>
+// ==========================================
+// DATA SOAL (25 soal lengkap)
+// ==========================================
+const soal = [
+    {id:1,q:"Norma kesopanan (folkways) dalam masyarak Indonesia?",opt:{A:"Membayar pajak",B:"Mengucapkan salam",C:"Tidak mencuri",D:"Aturan lalu lintas",E:"Hormat orang tua"},k:1},
+    {id:2,q:"Perubahan cepat dan tak direncanakan disebut?",opt:{A:"Evolusi",B:"Revolusi",C:"Reformasi",D:"Inovasi",E:"Akulturasi"},k:1},
+    {id:3,q:"Herbert Spencer mengadopsi konsep?",opt:{A:"Survival of fittest",B:"Class struggle",C:"Psychic unity",D:"Rationalisasi",E:"Kapitalisme"},k:0},
+    {id:4,q:"Kelompok berdasar kesamaan kepentingan?",opt:{A:"Golongan",B:"Primer",C:"Sekunder",D:"Asosiasi",E:"Masyarakat"},k:3},
+    {id:5,q:"Penyesuaian diri ke norma sosial?",opt:{A:"Asosialisasi",B:"Sosialisasi",C:"Akulturasi",D:"Enkulturasi",E:"Diffusion"},k:1},
+    {id:6,q:"Mobilitas dari bawah ke atas?",opt:{A:"Turun",B:"Naik",C:"Horizontal",D:"Intragenerasi",E:"Antargenerasi"},k:1},
+    {id:7,q:"Lembaga primer paling utama?",opt:{A:"Sekolah",B:"Pemerintah",C:"Keluarga",D:"Agama",E:"Ekonomi"},k:2},
+    {id:8,q:"Konflik fungsional menurut Coser?",opt:{A:"Merusak struktur",B:"Solidaritas kelompok",C:"Disintegrasi",D:"Kekerasan",E:"Total"},k:1},
+    {id:9,q:"Stratifikasi berdasar kekayaan?",opt:{A:"Politik",B:"Kelas",C:"Status",D:"Prestise",E:"Kasta"},k:1},
+    {id:10,q:"Peniruan perilaku dalam interaksi?",opt:{A:"Kompetisi",B:"Kerjasama",C:"Kontravensi",D:"Imitasi",E:"Akomodasi"},k:3},
+    {id:11,q:"Referensi utama identitas sosial?",opt:{A:"In-group",B:"Out-group",C:"Primer",D:"Reference group",E:"Sekunder"},k:3},
+    {id:12,q:"Deviansi yang melanggar hukum?",opt:{A:"Crime",B:"Penyimpangan",C:"Moral",D:"Kenakalan",E:"Anomi"},k:0},
+    {id:13,q:"Pengaruh budaya asing ke dalam negeri?",opt:{A:"Asimilasi",B:"Akulturasi",C:"Diffusion",D:"Westernisasi",E:"Modernisasi"},k:1},
+    {id:14,q:"Teori struktur sosial menindas?",opt:{A:"Fungsionalisme",B:"Konflik",C:"Pertukaran",D:"Interaksionisme",E:"Etnometodologi"},k:1},
+    {id:15,q:"Wewenang sah menurut Weber?",opt:{A:"Oligarki",B:"Demokrasi",C:"Birokrasi",D:"Politik",E:"Hegemoni"},k:2},
+    {id:16,q:"Perubahan nilai secara perlahan?",opt:{A:"Revolusi",B:"Evolusi",C:"Reformasi",D:"Drastis",E:"Transformasi"},k:1},
+    {id:17,q:"Penelitian kuantitat sampel besar?",opt:{A:"Kualitatif",B:"Survei",C:"Etnografi",D:"Studi kasus",E:"Fenomenologi"},k:1},
+    {id:18,q:"Kelompok berdasar hubungan darah?",opt:{A:"Komunitas",B:"Keluarga",C:"Golongan",D:"Bangsa",E:"Ras"},k:1},
+    {id:19,q:"Sistem stratifikasi paling kaku?",opt:{A:"Kelas",B:"Kasta",C:"Status",D:"Partai",E:"Profesi"},k:1},
+    {id:20,q:"Internalisasi nilai oleh individu?",opt:{A:"Primer",B:"Sekunder",C:"Resosialisasi",D:"Antisipasi",E:"Sosialisasi"},k:4},
+    {id:21,q:"Penentu arah nilai masyarakat modern?",opt:{A:"Agamis",B:"Politik",C:"Intelektual",D:"Ekonomi",E:"Media"},k:2},
+    {id:22,q:"Solidaritas mekanik di masyarakat?",opt:{A:"Individualistis",B:"Heterogen",C:"Homogen",D:"Industrial",E:"Urban"},k:2},
+    {id:23,q:"Deviansi yang tak dianggap negatif?",opt:{A:"Kejahatan",B:"Negatif",C:"Positif",D:"Primer",E:"Anomi"},k:2},
+    {id:24,q:"Konsep looking-glass self oleh?",opt:{A:"Mead",B:"Cooley",C:"Goffman",D:"Merton",E:"Parsons"},k:1},
+    {id:25,q:"Pendorong utama urbanisasi?",opt:{A:"Industri",B:"Paksa",C:"Bencana",D:"Konflik",E:"Transmigrasi"},k:0}
+];
+
+// ==========================================
+// STATE & VARIABLES
+// ==========================================
+let current = 0;
+let answers = {};
+let isActive = true;
+let violations = 0;
+const keyMap = {0:"A", 1:"B", 2:"C", 3:"D", 4:"E"};
+const letters = ["A","B","C","D","E"];
+
+// ==========================================
+// INITIALIZATION
+// ==========================================
+function init() {
+    renderQuestions();
+    renderDots();
+    showQuestion(0);
+    setupSecurity();
+    console.log("Ujian dimulai. Jangan keluar dari halaman!");
+}
+
+// ==========================================
+// RENDER FUNCTIONS
+// ==========================================
+function renderQuestions() {
+    const container = document.getElementById("examBody");
+    container.innerHTML = "";
+    
+    soal.forEach((s, i) => {
+        const card = document.createElement("div");
+        card.className = "question";
+        card.id = "q-" + i;
+        
+        let opts = "";
+        letters.forEach(l => {
+            opts += `<div class="option" id="opt-${s.id}-${l}" onclick="selectAnswer(${s.id}, '${l}')">
+                <input type="radio" name="q${s.id}" value="${l}" style="margin-right:10px">
+                <strong>${l}.</strong> ${s.opt[l]}
+            </div>`;
+        });
+        
+        const prevBtn = i > 0 ? `<button class="btn-secondary" onclick="prevQuestion()">← Sebelumnya</button>` : `<span></span>`;
+        const nextBtn = i < 24 ? 
+            `<button class="btn-primary" onclick="nextQuestion()">Selanjutnya →</button>` : 
+            `<button class="btn-finish" onclick="showConfirm()">✓ Selesai</button>`;
+        
+        card.innerHTML = `
+            <div class="q-text">Soal ${i+1} dari 25<br><br>${s.q}</div>
+            <div class="options">${opts}</div>
+            <div class="nav">${prevBtn}${nextBtn}</div>
+        `;
+        
+        container.appendChild(card);
+    });
+}
+
+function renderDots() {
+    const container = document.getElementById("dots");
+    container.innerHTML = "";
+    soal.forEach((s, i) => {
+        const dot = document.createElement("div");
+        dot.className = "dot";
+        dot.id = "dot-" + i;
+        dot.textContent = i + 1;
+        dot.onclick = () => showQuestion(i);
+        container.appendChild(dot);
+    });
+}
+
+// ==========================================
+// NAVIGATION
+// ==========================================
+function showQuestion(index) {
+    // Hide all
+    document.querySelectorAll(".question").forEach(q => q.classList.remove("active"));
+    document.querySelectorAll(".dot").forEach(d => d.classList.remove("active"));
+    
+    // Show current
+    document.getElementById("q-" + index).classList.add("active");
+    document.getElementById("dot-" + index).classList.add("active");
+    
+    // Restore selected answer
+    const qid = soal[index].id;
+    const ans = answers[qid];
+    if (ans) {
+        document.querySelectorAll(`#q-${index} .option`).forEach(opt => {
+            opt.classList.remove("selected");
+            if (opt.textContent.includes(ans + ".")) {
+                opt.classList.add("selected");
+                opt.querySelector("input").checked = true;
+            }
+        });
+    }
+    
+    current = index;
+    updateProgress();
+}
+
+function nextQuestion() {
+    if (current < 24) showQuestion(current + 1);
+}
+
+function prevQuestion() {
+    if (current > 0) showQuestion(current - 1);
+}
+
+// ==========================================
+// ANSWER HANDLING
+// ==========================================
+function selectAnswer(qid, opt) {
+    if (!isActive) return;
+    
+    answers[qid] = opt;
+    
+    // Visual feedback
+    document.querySelectorAll(`[id^="opt-${qid}-"]`).forEach(el => {
+        el.classList.remove("selected");
+        el.querySelector("input").checked = false;
+    });
+    
+    const selected = document.getElementById(`opt-${qid}-${opt}`);
+    if (selected) {
+        selected.classList.add("selected");
+        selected.querySelector("input").checked = true;
+    }
+    
+    // Update dot
+    const qIndex = soal.findIndex(s => s.id === qid);
+    document.getElementById("dot-" + qIndex).classList.add("answered");
+    
+    // Show status
+    const status = document.getElementById("status");
+    status.textContent = "Jawaban " + opt + " disimpan";
+    status.className = "status show";
+    setTimeout(() => status.className = "status", 1500);
+    
+    updateProgress();
+}
+
+function updateProgress() {
+    const n = Object.keys(answers).length;
+    document.getElementById("progressBar").style.width = (n/25*100) + "%";
+}
+
+// ==========================================
+// EXAM COMPLETION
+// ==========================================
+function showConfirm() {
+    if (!isActive) return;
+    const n = Object.keys(answers).length;
+    document.getElementById("ansCount").textContent = n;
+    document.getElementById("modal").className = "modal show";
+}
+
+function closeModal() {
+    document.getElementById("modal").className = "modal";
+}
+
+function finish() {
+    closeModal();
+    isActive = false;
+    
+    // Calculate score
+    let score = 0;
+    let correct = 0;
+    let results = [];
+    
+    soal.forEach(s => {
+        const ua = answers[s.id] || null;
+        const ca = keyMap[s.k];
+        const isCorrect = ua === ca;
+        
+        if (isCorrect) {
+            score += 4;
+            correct++;
+        }
+        
+        results.push({
+            q: s.q,
+            ua: ua,
+            ca: ca,
+            correct: isCorrect
+        });
+    });
+    
+    // Show result
+    document.getElementById("examBody").style.display = "none";
+    document.getElementById("dots").style.display = "none";
+    document.getElementById("result").className = "result show";
+    document.getElementById("scoreNum").textContent = score;
+    
+    const title = document.getElementById("resTitle");
+    const msg = document.getElementById("resMsg");
+    
+    if (score >= 60) {
+        title.innerHTML = "🎉 Selamat! Anda Lulus";
+        title.style.color = "#27ae60";
+        msg.innerHTML = `Benar: ${correct}/25 soal<br>Nilai: ${score}/100`;
+    } else {
+        title.innerHTML = "❌ Belum Lulus";
+        title.style.color = "#e74c3c";
+        msg.innerHTML = `Benar: ${correct}/25 soal<br>Nilai: ${score}/100<br>Minimal kelulusan: 60`;
+    }
+    
+    // Show details
+    let detailHTML = "<h3>Detail Jawaban:</h3>";
+    results.forEach((r, i) => {
+        const cls = r.correct ? "correct" : (r.ua ? "wrong" : "empty");
+        const txt = r.correct ? "✓ Benar" : (r.ua ? "✗ Salah" : "⚪ Kosong");
+        const correctAns = !r.correct ? ` (Jawaban: ${r.ca})` : "";
+        
+        detailHTML += `
+            <div class="item">
+                <div>${i+1}. ${r.q.substring(0,50)}...</div>
+                <div>
+                    <span class="ans ${cls}">${r.ua || "-"}</span>
+                    <div style="font-size:11px;color:#666">${txt}${correctAns}</div>
+                </div>
+            </div>
+        `;
+    });
+    document.getElementById("detail").innerHTML = detailHTML;
+    
+    // Remove beforeunload handler
+    window.onbeforeunload = null;
+}
+
+// ==========================================
+// SECURITY - ANTI CHEAT
+// ==========================================
+function setupSecurity() {
+    // 1. Detect tab switch / minimize
+    document.addEventListener("visibilitychange", function() {
+        if (document.hidden && isActive) {
+            handleViolation("TAB_SWITCH");
+        }
+    });
+    
+    // 2. Detect refresh/close
+    window.onbeforeunload = function(e) {
+        if (isActive) {
+            e.preventDefault();
+            e.returnValue = "Ujian akan dibatalkan!";
+            return "Ujian akan dibatalkan!";
+        }
+    };
+    
+    // 3. Detect window blur (click outside)
+    window.addEventListener("blur", function() {
+        if (isActive) {
+            handleViolation("WINDOW_BLUR");
+        }
+    });
+    
+    console.log("🔒 Security active: Jangan keluar dari halaman!");
+}
+
+function handleViolation(type) {
+    violations++;
+    console.log("⚠️ Pelanggaran #" + violations + ": " + type);
+    
+    const warning = document.getElementById("warning");
+    warning.className = "warning show";
+    warning.innerHTML = `⚠️ PERINGATAN: Pelanggaran #${violations}! (${type})<br>Ujian dibatalkan setelah 3x!`;
+    
+    // Auto cancel after 3 violations
+    if (violations >= 3) {
+        isActive = false;
+        alert("Ujian DIBATALKAN karena 3x pelanggaran keamanan!");
+        location.reload();
+    }
+    
+    // Hide warning after 3 seconds
+    setTimeout(() => {
+        if (violations < 3) warning.className = "warning";
+    }, 3000);
+}
+
+// ==========================================
+// KEYBOARD NAVIGATION
+// ==========================================
+document.addEventListener("keydown", function(e) {
+    if (!isActive) return;
+    if (e.key === "ArrowRight") nextQuestion();
+    if (e.key === "ArrowLeft") prevQuestion();
+});
+
+// Start
+init();
+</script>
+</body>
+</html>
